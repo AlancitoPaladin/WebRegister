@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cambios de Usuario</title>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+<div class="container">
+  <header class="header">
+    <div class="header-icon">✏️</div>
+    <h1>Modificar Usuario</h1>
+  </header>
+
+  <section class="control-panel">
+    <div id="alertCambios" class="alert"></div>
+
+    <form id="formCambios" class="form-grid">
+      <!-- ID usuario -->
+      <div class="form-group" style="grid-column: 1 / -1;">
+        <label class="form-label required">ID del Usuario</label>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="cambioID" class="form-input" required style="flex: 1;">
+          <button type="button" id="btnBuscar" class="btn">🔍 Buscar</button>
+        </div>
+      </div>
+
+      <!-- Datos personales -->
+      <div class="form-group">
+        <label class="form-label">Nombre</label>
+        <input type="text" id="cambioNombre" class="form-input" placeholder="Dejar vacío para no modificar">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Primer Apellido</label>
+        <input type="text" id="cambioPApellido" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Segundo Apellido</label>
+        <input type="text" id="cambioSApellido" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fecha de Nacimiento</label>
+        <input type="date" id="cambioNacimiento" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Género</label>
+        <select id="cambioGenero" class="form-select">
+          <option value="">No modificar</option>
+          <option value="1">Masculino</option>
+          <option value="2">Femenino</option>
+          <option value="3">Otro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Login</label>
+        <input type="text" id="cambioLogin" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nueva Contraseña</label>
+        <input type="password" id="cambioPwd" class="form-input" placeholder="Dejar vacío para mantener actual">
+      </div>
+
+      <!-- Foto con cámara -->
+      <div class="form-group" style="grid-column: 1 / -1;">
+        <label class="form-label">Foto de Perfil</label>
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+          <button type="button" id="btnTomarFoto" class="btn">📷 Tomar Foto</button>
+          <button type="button" id="btnCapturar" class="btn btn-submit" style="display: none;">✓ Capturar</button>
+          <button type="button" id="btnCancelarCamara" class="btn btn-cancel" style="display: none;">✕ Cancelar</button>
+        </div>
+
+        <video id="video" style="width: 100%; max-width: 400px; border-radius: 10px; display: none;"></video>
+        <canvas id="canvas" style="display: none;"></canvas>
+
+        <!-- Preview de la foto -->
+        <div id="fotoPreviewContainer" style="margin-top: 1rem; text-align: center; display: none;">
+          <p style="color: #94a3b8; margin-bottom: 0.5rem;">Foto actual:</p>
+          <img id="imgPreview" style="max-width: 200px; max-height: 200px; border-radius: 10px; border: 2px solid rgba(148, 163, 184, 0.2);">
+        </div>
+      </div>
+
+      <div class="form-actions" style="grid-column: 1 / -1;">
+        <button type="submit" class="btn btn-submit" id="btnActualizar">✓ Guardar Cambios</button>
+        <button type="button" class="btn btn-cancel" id="cancelar">✕ Cancelar</button>
+        <button type="button" class="btn" id="volver">← Regresar al inicio</button>
+      </div>
+    </form>
+  </section>
+</div>
+
+<script src="ajax.js"></script>
+<script src="cambiosUI.js"></script>
+<script src="cambios.js"></script>
+</body>
+</html>

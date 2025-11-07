@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Baja de Usuario</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-icon">⚡</div>
+      <h1>Baja de Usuario</h1>
+    </header>
+
+    <section class="form-section">
+      <form id="formBajas" class="form-grid">
+        <div class="form-group">
+          <label class="form-label required">ID del Usuario</label>
+          <input type="text" id="bajaID" class="form-input" required placeholder="Ingrese el ID del usuario a eliminar">
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-submit">Confirmar Baja</button>
+          <button type="button" class="btn btn-cancel" id="cancelar">Cancelar</button>
+          <button type="button" class="btn" id="volver">← Regresar al inicio</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+<script src="ajax.js"></script>
+<script src="bajasUI.js"></script>
+<script src="bajas.js"></script>
+
+</body>
+</html>

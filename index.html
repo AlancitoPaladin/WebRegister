@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Registro</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-icon">⚡</div>
+      <h1>Sistema de registro</h1>
+    </header>
+
+    <section class="control-panel">
+      <div class="button-group">
+        <button id="CONSTANTES" class="btn btn-primary" type="button">CONSTANTES</button>
+        <button id="CONSULTAS" class="btn" type="button">CONSULTAS ↑ (Ascendente)</button>
+        <button id="CONSULTAS_DESCENDENTE" class="btn btn-secondary" type="button">CONSULTAS ↓ (Descendente)</button>
+        <button id="ALTAS" class="btn btn-terciary" type="button">ALTAS</button>
+        <button id="BAJAS" class="btn" type="button">BAJAS</button>
+        <button id="CAMBIOS" class="btn btn-primary" type="button">CAMBIOS</button>
+      </div>
+
+      <div class="search-section">
+        <div class="input-wrapper">
+          <input id="login" class="input-field" type="text" placeholder="Ingrese usuario o login...">
+        </div>
+        <button id="CONSULTAS_LOGIN" class="btn" type="button">BUSCAR LOGIN</button>
+      </div>
+    </section>
+
+    <section class="results-section">
+      <div class="results-header">
+        <div class="results-title">Resultados</div>
+        <div class="results-count" id="resultsCount">En espera...</div>
+      </div>
+      <div class="results-container">
+        <table id="resultadosTable">
+          <thead>
+            <tr id="tableHeader"></tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script src="ajax.js"></script>
+  <script src="indexV.js"></script>
+  <script src="index.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("ALTAS").addEventListener("click", () => {
+        window.location.href = "altas.html";
+      });
+      document.getElementById("BAJAS").addEventListener("click", () => {
+        window.location.href = "bajas.html";
+      });
+      document.getElementById("CAMBIOS").addEventListener("click", () => {
+        window.location.href = "cambios.html";
+      });
+    });
+  </script>
+</body>
+</html>
