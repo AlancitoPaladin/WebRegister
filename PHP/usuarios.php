@@ -24,10 +24,16 @@ class usuarios extends BD {
             if ($stmt->columnCount() > 0) {
                 $resultado = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
-            
+            // Si el primer registro trae una columna "codigo", la propagamos
+            $codigo = null;
+            if (is_array($resultado) && count($resultado) > 0 && array_key_exists('codigo', $resultado[0])) {
+                $codigo = (int)$resultado[0]['codigo'];
+            }
+
             return [
                 "ok" => 1,
                 "mensaje" => "Operación ejecutada correctamente",
+                "codigo" => $codigo,
                 "data" => $resultado
             ];
         } catch (PDOException $e) {

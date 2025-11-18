@@ -8,25 +8,7 @@ class Ajax {
 		
 		xhttp.onreadystatechange = function() {
 			if (this.readyState == 4 && this.status == 200) {
-				// Validar que la respuesta sea JSON válido
-				try {
-					// Verificar si la respuesta comienza con '<'
-					if (this.responseText.trim().startsWith('<')) {
-						throw new Error('La respuesta parece ser HTML en lugar de JSON');
-					}
-					
-					// Intentar parsear el JSON
-					JSON.parse(this.responseText);
-					funcion(this.responseText);
-				} catch (e) {
-					console.error("Error en la respuesta:", e);
-					console.log("Respuesta raw:", this.responseText);
-					funcion(JSON.stringify({
-						ok: 0,
-						error: "Error en el formato de la respuesta",
-						mensaje: "El servidor no devolvió un JSON válido"
-					}));
-				}
+				funcion(this.responseText)
 			}
 			else if (this.readyState == 4 && this.status != 200) {
 				console.error("Error en la petición:", this.status, this.statusText)
@@ -48,8 +30,27 @@ class Ajax {
 			}))
 		}
 		
-		xhttp.open("POST", this.listener, true)
-		xhttp.setRequestHeader("Content-type", "application/json")
-		xhttp.send(JSON.stringify(datos))
+		try {
+			if (window.validator) {
+				validator.validarObjeto(datos)
+				datos = validator.sanitizarObjeto(datos)
+				console.log("Datos validados y sanitizados:", datos)
+			}
+			
+			xhttp.open("POST", this.listener, true)
+			xhttp.setRequestHeader("Content-type", "application/json")
+			xhttp.send(JSON.stringify(datos))
+			
+		} catch(error) {
+			console.error("Error de validación:", error.message)
+			alert("Error de validación:\n" + error.message)
+			
+			// Devolver error al callback
+			funcion(JSON.stringify({
+				ok: 0,
+				error: "Validación fallida",
+				mensaje: error.message
+			}))
+		}
 	}
 }

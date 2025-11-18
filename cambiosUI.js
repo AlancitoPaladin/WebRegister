@@ -199,22 +199,46 @@ enviar_click_resultado(r) {
         console.log("Respuesta del servidor:", r);
 
         // Si la respuesta es exitosa (ok === 1)
-        if (r.ok === 1) {
-            this.mostrarMensaje('Usuario modificado exitosamente', 'success');
-            if (this.form) this.form.reset();
-            setTimeout(() => { window.location.href = "index.html"; }, 2000);
-            return;
-        }
-        
-        // Si hay un error específico
-        if (r.error) {
-            this.mostrarMensaje(r.mensaje || r.error, 'error');
-            return;
-        }
+    // Si viene un código numérico desde el servidor, mapearlo a un mensaje usando
+    // window.self.obtenerMensajeError (si está disponible)
+    if (r.codigo !== undefined && r.codigo !== null) {
+      const obtener = window.self && typeof window.self.obtenerMensajeError === 'function'
+        ? window.self.obtenerMensajeError.bind(window.self)
+        : (c) => (r.mensaje || `Código ${c}`);
 
-        // Si no hay indicación clara de éxito o error
-        this.mostrarMensaje('Error al modificar el usuario', 'error');
-        
+      const mensaje = obtener(r.codigo) || r.mensaje || `Código ${r.codigo}`;
+      const tipo = (r.ok === 1) ? 'success' : 'error';
+      // Mostrar mensaje en la UI y además abrir una ventana modal pequeña
+      this.mostrarMensaje(mensaje, tipo);
+      if (r.ok === 1) {
+        if (this.form) this.form.reset();
+        // Mostrar ventana modal nativa; al aceptar se redirige
+        window.alert(mensaje);
+        window.location.href = "index.html";
+      }
+      return;
+    }
+
+    // Si la respuesta es exitosa (ok === 1) sin código
+    if (r.ok === 1) {
+      const mensaje = 'Usuario modificado exitosamente';
+      this.mostrarMensaje(mensaje, 'success');
+      if (this.form) this.form.reset();
+      // Mostrar ventana modal nativa; al aceptar se redirige
+      window.alert(mensaje);
+      window.location.href = "index.html";
+      return;
+    }
+
+    // Si hay un error específico
+    if (r.error) {
+      this.mostrarMensaje(r.mensaje || r.error, 'error');
+      return;
+    }
+
+    // Si no hay indicación clara de éxito o error
+    this.mostrarMensaje('Error al modificar el usuario', 'error');
+
     } catch (e) {
         console.error("Error parseando JSON:", e);
         this.mostrarMensaje('Error en la respuesta del servidor', 'error');
