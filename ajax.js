@@ -31,10 +31,18 @@ class Ajax {
 		}
 		
 		try {
+			// VALIDAR Y SANITIZAR DATOS antes de enviar
 			if (window.validator) {
-				validator.validarObjeto(datos)
+				console.log('Datos originales:', datos)
+				
+				// Sanitizar primero
 				datos = validator.sanitizarObjeto(datos)
-				console.log("Datos validados y sanitizados:", datos)
+				console.log('Datos sanitizados:', datos)
+				
+				// Validar después (puede lanzar error si hay algo MUY malo)
+				validator.validarObjeto(datos)
+				
+				console.log("Validación exitosa - Enviando al servidor")
 			}
 			
 			xhttp.open("POST", this.listener, true)
@@ -42,7 +50,8 @@ class Ajax {
 			xhttp.send(JSON.stringify(datos))
 			
 		} catch(error) {
-			console.error("Error de validación:", error.message)
+			console.error("Error de validación:", error)
+			console.error("Stack:", error.stack)
 			alert("Error de validación:\n" + error.message)
 			
 			// Devolver error al callback

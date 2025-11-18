@@ -1,8 +1,7 @@
 class DataValidator {
 	constructor() {
-		// Caracteres peligrosos que pueden romper JSON o causar inyección
-		this.caracteresProhibidos = /[<>{}[\]\\`]/g
-		this.caracteresEscape = /[\\"]/g
+		// Caracteres peligrosos que pueden romper JSON o causar problemas
+		this.caracteresProhibidos = /[<>\\`]/g  // Solo los realmente peligrosos
 		
 		// Longitudes máximas por tipo de campo
 		this.longitudesMaximas = {
@@ -19,19 +18,22 @@ class DataValidator {
 		this.patrones = {
 			fecha: /^\d{4}-\d{2}-\d{2}$/,
 			numero: /^\d+$/,
-			alfanumerico: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s._-]*$/,
-			email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+			// Permitimos más caracteres en nombres
+			nombre: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s._\-:{}[\]]*$/
 		}
 	}
 
-	// Sanitizar string: eliminar caracteres peligrosos
+	// Sanitizar string: eliminar solo caracteres realmente peligrosos
 	sanitizarString(valor) {
 		if (typeof valor !== 'string') return valor
 		
-		// Eliminar caracteres peligrosos
+		// Eliminar SOLO caracteres muy peligrosos
 		let limpio = valor.replace(this.caracteresProhibidos, '')
 		
-		// Trim espacios
+		// Escapar comillas para evitar problemas con JSON
+		limpio = limpio.replace(/"/g, '\\"')
+		
+		// Trim espacios al inicio y final
 		limpio = limpio.trim()
 		
 		return limpio
@@ -57,40 +59,54 @@ class DataValidator {
 		// Validar fechas
 		if (campo === 'nacimiento' || campo.includes('Nacimiento')) {
 			if (!this.patrones.fecha.test(valor)) {
-				throw new Error(`Formato de fecha inválido. Use YYYY-MM-DD`)
+				throw new Error(`Formato de fecha inválido en ${campo}. Use YYYY-MM-DD`)
 			}
 		}
 		
 		// Validar números
 		if (campo === 'genero' || campo.includes('Genero')) {
-			if (valor !== '' && !this.patrones.numero.test(String(valor))) {
+			const valorStr = String(valor)
+			if (valorStr !== '' && valorStr !== '0' && !this.patrones.numero.test(valorStr)) {
 				throw new Error(`El campo ${campo} debe ser numérico`)
-			}
-		}
-		
-		// Validar IDs
-		if (campo === 'id' || campo.includes('ID')) {
-			if (!this.patrones.alfanumerico.test(valor)) {
-				throw new Error(`ID contiene caracteres no permitidos`)
 			}
 		}
 		
 		return true
 	}
 
-	// Validar que no haya intentos de inyección SQL básicos
+	// Validar inyección SQL - VERSIÓN CORREGIDA
 	validarInyeccionSQL(valor) {
 		if (typeof valor !== 'string') return true
+		if (valor === '' || valor === 'NO_DEFINIDO') return true
 		
-		const patronesSQL = [
-			/(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE)\b)/gi,
-			/(--|\/\*|\*\/|;)/g,
-			/('OR'|"OR"|'1'='1'|"1"="1")/gi
+		// Convertir a mayúsculas para comparación
+		const valorUpper = valor.toUpperCase()
+		
+		// Solo detectar patrones MUY específicos y peligrosos
+		const patronesPeligrosos = [
+			// SQL keywords COMPLETOS con espacios (no dentro de palabras)
+			/\bDROP\s+TABLE\b/i,
+			/\bDELETE\s+FROM\b/i,
+			/\bTRUNCATE\s+TABLE\b/i,
+			// Comentarios SQL explícitos
+			/--\s*$/,
+			/\/\*.*\*\//,
+			// Bypass authentication obvios
+			/'\s*OR\s*'1'\s*=\s*'1/i,
+			/"\s*OR\s*"1"\s*=\s*"1/i,
+			/'\s*OR\s*1\s*=\s*1/i,
+			// UNION attacks
+			/\bUNION\s+ALL\s+SELECT\b/i,
+			/\bUNION\s+SELECT\b/i,
+			// Intentos de cerrar queries
+			/';\s*DROP/i,
+			/";\s*DROP/i
 		]
 		
-		for (const patron of patronesSQL) {
+		for (const patron of patronesPeligrosos) {
 			if (patron.test(valor)) {
-				throw new Error('Datos sospechosos detectados. Por favor use valores válidos.')
+				console.error('🚨 Patrón SQL peligroso detectado:', valor)
+				throw new Error('Patrón sospechoso detectado en los datos')
 			}
 		}
 		
@@ -104,9 +120,9 @@ class DataValidator {
 		for (const [campo, valor] of Object.entries(datos)) {
 			try {
 				// Saltear campos especiales
-				if (campo === 'servicio' || campo === 'orden') continue
+				if (campo === 'servicio' || campo === 'orden' || campo === 'foto') continue
 				
-				// Validar inyección SQL
+				// Validar inyección SQL (solo patrones muy obvios)
 				this.validarInyeccionSQL(valor)
 				
 				// Validar formato
@@ -116,7 +132,7 @@ class DataValidator {
 				this.validarLongitud(campo, valor)
 				
 			} catch (error) {
-				errores.push(error.message)
+				errores.push(`${campo}: ${error.message}`)
 			}
 		}
 		
@@ -132,7 +148,7 @@ class DataValidator {
 		const datosSanitizados = {}
 		
 		for (const [campo, valor] of Object.entries(datos)) {
-			// No sanitizar el servicio ni la foto base64
+			// No tocar el servicio ni el orden
 			if (campo === 'servicio' || campo === 'orden') {
 				datosSanitizados[campo] = valor
 			}
@@ -140,7 +156,7 @@ class DataValidator {
 			else if (campo === 'foto' && typeof valor === 'string' && valor.startsWith('data:image')) {
 				datosSanitizados[campo] = valor
 			}
-			// Sanitizar strings normales
+			// Sanitizar strings normales (solo quitar caracteres MUY peligrosos)
 			else if (typeof valor === 'string') {
 				datosSanitizados[campo] = this.sanitizarString(valor)
 			}
@@ -153,44 +169,25 @@ class DataValidator {
 		return datosSanitizados
 	}
 
-	// Crear Proxy que valida automáticamente
-	crearProxyValidado(datos) {
-		const validator = this
+	// Log de sanitización (útil para debugging)
+	logSanitizacion(original, sanitizado) {
+		const cambios = []
 		
-		return new Proxy(datos, {
-			set(target, propiedad, valor) {
-				// Permitir configuración inicial
-				if (propiedad === 'servicio' || propiedad === 'orden') {
-					target[propiedad] = valor
-					return true
-				}
-				
-				try {
-					// Sanitizar valor
-					let valorLimpio = valor
-					if (typeof valor === 'string' && !(propiedad === 'foto' && valor.startsWith('data:image'))) {
-						valorLimpio = validator.sanitizarString(valor)
-					}
-					
-					// Validar
-					validator.validarInyeccionSQL(valorLimpio)
-					validator.validarFormato(propiedad, valorLimpio)
-					validator.validarLongitud(propiedad, valorLimpio)
-					
-					// Asignar valor limpio
-					target[propiedad] = valorLimpio
-					return true
-					
-				} catch (error) {
-					console.error(`Error validando ${propiedad}:`, error.message)
-					throw error
-				}
-			},
-			
-			get(target, propiedad) {
-				return target[propiedad]
+		for (const [campo, valor] of Object.entries(original)) {
+			if (sanitizado[campo] !== valor && campo !== 'foto') {
+				cambios.push({
+					campo,
+					original: valor,
+					sanitizado: sanitizado[campo]
+				})
 			}
-		})
+		}
+		
+		if (cambios.length > 0) {
+			console.warn('⚠️ Datos sanitizados:', cambios)
+		}
+		
+		return cambios
 	}
 }
 
